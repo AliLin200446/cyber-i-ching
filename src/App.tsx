@@ -1,5 +1,4 @@
 // src/App.tsx
-import React from "react";
 import { CyberIChing } from "./components/CyberIChing";
 import { useLiveOracle } from "./hooks/useLiveOracle";
 
@@ -16,7 +15,7 @@ function App() {
       <div style={{
         position: 'absolute', top: 24, right: 24, textAlign: 'right',
         fontFamily: "'Courier New', monospace", 
-        color: isLive ? '#00ff99' : '#ffcc00', // 绿色代表实时，黄色代表模拟/连接中
+        color: isLive ? '#00ff99' : '#ffcc00', 
         textShadow: isLive ? '0 0 10px #00ff99' : 'none', 
         pointerEvents: 'none', 
         zIndex: 20
