@@ -1,4 +1,3 @@
-// src/hooks/useLiveOracle.ts
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 
@@ -22,8 +21,6 @@ export function useLiveOracle() {
 
     const connect = async () => {
       const url = RPC_URLS[0]; 
-      console.log(`🔮 Oracle connecting via: ${url}`);
-      
       try {
         const newProvider = new ethers.JsonRpcProvider(url);
         provider = newProvider;
@@ -35,23 +32,18 @@ export function useLiveOracle() {
           setIsLive(true);
         }
 
-        // 监听新区块 (Heartbeat)
         newProvider.on("block", async (blockNum) => {
           if (!isMounted) return;
           try {
             const b = await newProvider.getBlock(blockNum);
             if (b && b.hash) {
-              console.log(`⚡ New Block: #${blockNum}`);
               setHash(b.hash);
               setBlockNumber(b.number);
             }
-          } catch (e) {
-            console.warn("Block fetch skipped", e);
-          }
+          } catch (e) { console.warn(e); }
         });
 
       } catch (err) {
-        console.error("💀 Oracle Connection Failed. Switching to Simulation Mode.", err);
         if (isMounted) startSimulation();
       }
     };
