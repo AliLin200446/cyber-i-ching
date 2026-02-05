@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Zen+Maru+Gothic:wght@300;400;700&display=swap');
+:root { font-family: monospace; }
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #030308;
+  color: #fff;
+  /* 优先使用赛博字体，中文使用圆体保持“禅意” */
+  font-family: 'Share Tech Mono', 'Zen Maru Gothic', monospace, sans-serif;
+  overflow: hidden; /* 防止滚动条出现 */
+  -webkit-font-smoothing: antialiased;
+}
