@@ -1,13 +1,13 @@
 // src/components/CyberIChing.tsx
 import * as THREE from "three";
-import { useCallback, useMemo, useRef } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Sparkles } from "@react-three/drei";
 import { EffectComposer, Bloom, Scanline, Noise } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import { useFateDecrypt } from "../hooks/useFateDecrypt";
 import { useZenTone } from "../hooks/useZenTone";
-import type { LineData } from "../utils/fateLogic"; 
+import type { LineData } from "../utils/fateLogic"; // 确保使用 type 导入
 
 // ------------------------------------------------------------------
 // Shader Helpers
@@ -20,12 +20,11 @@ function inject(src: string, needle: string, insert: string) {
 // Component: Yin Ring (The Broken Line - 阴爻)
 // ------------------------------------------------------------------
 function YinRing({ radius, tube, index, intensity, isChanging }: { radius: number; tube: number; index: number, intensity: number, isChanging: boolean }) {
-  // 使用 any 绕过 THREE.Shader 类型检查
-  const shaderRef = useRef<any>(null);
+  const shaderRef = useRef<THREE.Shader | null>(null);
   const phase = useMemo(() => index * 0.85, [index]);
 
   const onBeforeCompile = useCallback(
-    (shader: any) => {
+    (shader: THREE.Shader) => {
       shader.uniforms.uTime = { value: 0 };
       shader.uniforms.uGapBase = { value: 0.23 };
       shader.uniforms.uGapAmp = { value: 0.06 };
@@ -103,9 +102,9 @@ function YinRing({ radius, tube, index, intensity, isChanging }: { radius: numbe
 // Component: Yang Ring (The Solid Line - 阳爻)
 // ------------------------------------------------------------------
 function YangRing({ radius, tube, intensity, isChanging }: { radius: number; tube: number, intensity: number, isChanging: boolean }) {
-  const shaderRef = useRef<any>(null);
+  const shaderRef = useRef<THREE.Shader | null>(null);
 
-  const onBeforeCompile = useCallback((shader: any) => {
+  const onBeforeCompile = useCallback((shader: THREE.Shader) => {
     shader.uniforms.uTime = { value: 0 };
     shader.uniforms.uPulseSpeed = { value: 1.1 };
     shader.uniforms.uNeon = { value: new THREE.Color("#00ffff") }; // Cyan
@@ -189,13 +188,13 @@ function RingWrapper({ lineData, index }: { lineData: LineData; index: number })
   const { bit, isChanging, energyLevel } = lineData;
   const baseRadius = 0.65; 
   const step = 0.19; 
-  
-  // 管道半径 (粗细)
-  const tube = 0.12;
+  const tube = 0.052;
 
   useFrame(({ clock }, delta) => {
     const t = clock.elapsedTime;
     const dir = index % 2 === 0 ? 1 : -1;
+    
+    // 变爻时旋转更不稳定
     const speedMult = isChanging ? 2.5 : 1.0; 
     
     g.current.rotation.z += dir * delta * 0.22 * speedMult;
@@ -279,38 +278,37 @@ export function CyberIChing({ hash = "0x8f2a5594907f1f4d1c2d3b14b0d90d1f7b1e9f0a
       {/* 1. Left Bottom: The Cyber Altar (Oracle Interpretation) */}
       <div style={{
           position: 'absolute', bottom: 80, left: 60, zIndex: 10,
+          // 使用赛博字体，如果加载失败则回退到 Courier
           fontFamily: "'Share Tech Mono', 'Courier New', monospace",
           color: isDecrypting ? '#ffffff' : '#00eaff',
-          textShadow: isDecrypting ? '0 0 15px #ffffff' : '0 0 20px rgba(0,234,255,0.5)',
+          textShadow: isDecrypting ? '0 0 15px #ffffff' : '0 0 20px rgba(0,234,255,0.5)', // 白光晕
           transition: 'all 0.3s ease',
           pointerEvents: 'none'
       }}>
         {displayMeta && (
             <>
-                <div style={{ fontSize: '0.8rem', opacity: 0.5, marginBottom: '0.5rem', letterSpacing: '4px', fontWeight: 'bold' }}>
+                <div style={{ fontSize: '0.8rem', opacity: 0.5, marginBottom: '0.5rem', letterSpacing: '4px' }}>
                      ORACLE OUTPUT
                 </div>
-                {/* 卦名标题 */}
                 <h1 style={{ 
-                    fontSize: '3.5rem', margin: 0, fontWeight: 700, 
+                    fontSize: '3.5rem', margin: 0, fontWeight: 300,
                     textShadow: isDecrypting ? '2px 0 10px #ffe57eff' : '0 0 20px #00eaff80',
                     filter: isDecrypting ? 'blur(1px)' : 'none'
                 }}>
                     {displayMeta.name}
                 </h1>
-                <div style={{ fontSize: '1rem', opacity: 0.8, marginBottom: '1.5rem', letterSpacing: '1px', fontStyle: 'italic', fontWeight: 600 }}>
+                <div style={{ fontSize: '1rem', opacity: 0.8, marginBottom: '1.5rem', letterSpacing: '1px', fontStyle: 'italic' }}>
                     {displayMeta.pinyin}
                 </div>
                 <div style={{ 
-                    borderLeft: `3px solid ${isDecrypting ? '#ff0055' : '#00eaff'}`, 
+                    borderLeft: `2px solid ${isDecrypting ? '#ff0055' : '#00eaff'}`, 
                     paddingLeft: '1.5rem', maxWidth: '380px', lineHeight: '1.6', fontSize: '0.9rem',
-                    fontWeight: 500,
                     background: 'linear-gradient(90deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%)'
                 }}>
                     {displayMeta.judgment}
                 </div>
                 
-                <div style={{ marginTop: '1rem', fontSize: '0.7rem', color: '#c8f5c2ff', fontWeight: 'bold' }}>
+                <div style={{ marginTop: '1rem', fontSize: '0.7rem', color: '#c8f5c2ff' }}>
                     RITUAL HINT: {displayMeta.ritualHint}
                 </div>
             </>
@@ -318,18 +316,20 @@ export function CyberIChing({ hash = "0x8f2a5594907f1f4d1c2d3b14b0d90d1f7b1e9f0a
       </div>
 
       {/* 2. Right: Hash Deconstructor (Logic of Fate) */}
+      
       <div style={{
-          position: 'absolute', bottom: 60, right: 70, zIndex: 10,
+          position: 'absolute', bottom: 60, right: 70, zIndex: 10, // 改为 bottom-right 对齐
           textAlign: 'right', 
           fontFamily: "'Share Tech Mono', monospace", 
+          // 字体调大，跟左边的正文(0.9rem)保持视觉平衡
           fontSize: '14px', 
           color: '#444',
-          display: 'flex', flexDirection: 'column', gap: '12px'
+          display: 'flex', flexDirection: 'column', gap: '12px' // 增加行间距
       }}>
          <div style={{
              marginBottom: '10px', 
-             color: isDecrypting ? '#00eaff80' : '#ffffffff', 
-             fontSize: '12px', letterSpacing: '2px', opacity: 0.8, fontWeight: 'bold' 
+             color: isDecrypting ? '#00eaff80' : '#ffffffff', // 标题也随状态变色
+             fontSize: '12px', letterSpacing: '2px', opacity: 0.8 
          }}>
              DATA STREAM DECOMPOSITION
          </div>
@@ -340,6 +340,7 @@ export function CyberIChing({ hash = "0x8f2a5594907f1f4d1c2d3b14b0d90d1f7b1e9f0a
              return (
                  <div key={realIndex} style={{ 
                      display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px',
+                     // 整体字体变大
                      fontSize: '16px', 
                      color: line.isChanging ? (isDecrypting ? '#00eaff80' : '#00eaff80') : '#ffffffff',
                      textShadow: line.isChanging ? '0 0 8px currentColor' : 'none',
@@ -350,12 +351,8 @@ export function CyberIChing({ hash = "0x8f2a5594907f1f4d1c2d3b14b0d90d1f7b1e9f0a
                         {line.rawSegment}
                      </span>
                      
-                     {/* 右侧的阴阳符号加大、加粗 */}
-                     <span style={{
-                         fontWeight: 900, 
-                         fontSize: '22px', 
-                         letterSpacing: '-2px'
-                     }}>
+                     {/* 阴阳爻符号 (加大加粗) */}
+                     <span style={{fontWeight: 'bold', fontSize: '18px', letterSpacing: '-2px'}}>
                         {line.bit === 1 ? '—————' : '—— ——'}
                      </span>
                      
@@ -373,7 +370,7 @@ export function CyberIChing({ hash = "0x8f2a5594907f1f4d1c2d3b14b0d90d1f7b1e9f0a
         position: 'absolute', top: 50, left: 50, 
         color: 'rgba(68, 227, 255, 0.7)', fontSize: '10px', 
         fontFamily: "'Share Tech Mono', monospace",
-        pointerEvents: 'none', zIndex: 50, letterSpacing: '1px', fontWeight: 'bold'
+        pointerEvents: 'none', zIndex: 50, letterSpacing: '1px'
       }}>
         [ CLICK ANYWHERE TO ENABLE SOUND ]
       </div>
