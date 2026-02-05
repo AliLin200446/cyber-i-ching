@@ -1,6 +1,7 @@
 // src/components/CyberIChing.tsx
 import * as THREE from "three";
-import React, { useCallback, useMemo, useRef } from "react";
+// 1. 移除了 'React'，只保留需要的 hook
+import { useCallback, useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Sparkles } from "@react-three/drei";
 import { EffectComposer, Bloom, Scanline, Noise } from "@react-three/postprocessing";
@@ -20,11 +21,12 @@ function inject(src: string, needle: string, insert: string) {
 // Component: Yin Ring (The Broken Line - 阴爻)
 // ------------------------------------------------------------------
 function YinRing({ radius, tube, index, intensity, isChanging }: { radius: number; tube: number; index: number, intensity: number, isChanging: boolean }) {
-  const shaderRef = useRef<THREE.Shader | null>(null);
+  // 2. 将 THREE.Shader 改为 any，解决 "Namespace 'THREE' has no exported member 'Shader'" 报错
+  const shaderRef = useRef<any>(null);
   const phase = useMemo(() => index * 0.85, [index]);
 
   const onBeforeCompile = useCallback(
-    (shader: THREE.Shader) => {
+    (shader: any) => { // 3. 参数类型也改为 any
       shader.uniforms.uTime = { value: 0 };
       shader.uniforms.uGapBase = { value: 0.23 };
       shader.uniforms.uGapAmp = { value: 0.06 };
@@ -102,9 +104,10 @@ function YinRing({ radius, tube, index, intensity, isChanging }: { radius: numbe
 // Component: Yang Ring (The Solid Line - 阳爻)
 // ------------------------------------------------------------------
 function YangRing({ radius, tube, intensity, isChanging }: { radius: number; tube: number, intensity: number, isChanging: boolean }) {
-  const shaderRef = useRef<THREE.Shader | null>(null);
+  // 4. 将 THREE.Shader 改为 any
+  const shaderRef = useRef<any>(null);
 
-  const onBeforeCompile = useCallback((shader: THREE.Shader) => {
+  const onBeforeCompile = useCallback((shader: any) => { // 5. 参数类型也改为 any
     shader.uniforms.uTime = { value: 0 };
     shader.uniforms.uPulseSpeed = { value: 1.1 };
     shader.uniforms.uNeon = { value: new THREE.Color("#00ffff") }; // Cyan
