@@ -374,7 +374,7 @@ export function CyberIChing({ hash = "0x8f2a5594907f1f4d1c2d3b14b0d90d1f7b1e9f0a
       }}>
         [ CLICK ANYWHERE TO ENABLE SOUND ]
       </div>
-
+ 
     </div>
   );
 }
